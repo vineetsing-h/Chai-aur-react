@@ -1,10 +1,6 @@
-
 import React from 'react'
 import Login from './components/Login'
 import Profile from './components/Profile'
-import UserContext from "./Context/UserContext";
-import { useContext } from "react";
-import { useState } from "react";
 import UserContextProvider from "./Context/UserContextProvider";
 
 function App() {
