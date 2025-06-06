@@ -6,17 +6,18 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 function PostForm({post}) {
-    const {register, handleSubmit, watch, setValue, control, } = useForm({
+    const {register, handleSubmit, watch, setValue, control, getValues } = useForm({
         defaultValues: {
+            slug: post?.$id || '',
             title: post?.title || '',
             content: post?.content || '',
             status: post?.status || 'active',
             
-        }
+        },
     });
 
     const navigate = useNavigate();
-    const userData = useSelector((state) => state.user.userData);
+    const userData = useSelector((state) => state.auth.userData);
 
     const submit = async (data) => {
         if(post) 
@@ -69,8 +70,8 @@ function PostForm({post}) {
     React.useEffect(() => {
         const subscription = watch((value, {name}) => {
             if(name === 'title' ) {
-                const slug = slugTransform(value.title, {shouldValidate: true});
-                setValue('slug', slug);
+
+                setValue('slug', slugTransform(value.title), {shouldValidate: true});
             }
         });
         return () => subscription.unsubscribe();

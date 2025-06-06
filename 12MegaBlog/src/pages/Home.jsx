@@ -1,50 +1,69 @@
-import React, {useEffect, useState} from 'react'
-import appwriteService from '../appwrite/config'
+import React, { useEffect, useState } from 'react'
+import appwriteService from "../appwrite/config";
 import { Container, PostCard } from '../components'
+import { Account } from 'appwrite';
+import { Query } from 'appwrite';
 
 function Home() {
-    const [posts, setPosts] = useState([])
-    useEffect(() => {
-        appwriteService.getPosts().then((posts) => {
-            if(posts) {
-                setPosts(posts.documents)
-            }
-        })
-    }, [])
+  const [posts, setPosts] = useState([])
+  const [loading, setLoading] = useState(true)
 
-    if(posts.length === 0) {
+  useEffect(() => {
+    async function fetchUserPosts() {
+      try {
+        const account = new Account(appwriteService.client)
+        const user = await account.get()
+        const userId = user.$id
 
-        return (
-            <div className='w-full py-8 mt-4 text-center'>
-                <Container>
-                    <div className='flex flex-wrap'>
-                        <div className='p-2 w-full'>
-                        <h1 className='text-2xl font-bold hover:text-gray-500'>
-                            Login to Read Posts
-                        </h1>
-                        </div>
+        const userPosts = await appwriteService.getPosts([
+          Query.equal("status", "active"),
+         // Query.equal("userId", userId)
+        ])
 
-                    </div>
-                </Container>
-            </div>
-          )
+        setPosts(userPosts || [])
+      } catch (error) {
+        console.error("Error fetching user posts:", error)
+        setPosts([])
+      } finally {
+        setLoading(false)
+      }
     }
+    fetchUserPosts()
+  }, [])
 
+  if (loading) {
     return (
-        <div className='w-full py-8 mt-4'>
-            <Container>
-                <div className='flex flex-wrap'>
-                    {posts.map((post) => (
-                        <div key={post.$id} className='p-2 w-full md:w-1/2 lg:w-1/3'>
-                            <PostCard {...post} />
-                        </div>
-                    ))}
-                </div>
-            </Container>
-        </div>
+      <div className="w-full py-8 mt-4 text-center">
+        <Container>
+          <h1 className="text-2xl font-bold">Loading posts...</h1>
+        </Container>
+      </div>
     )
-   
+  }
 
+  if (posts.length === 0) {
+    return (
+      <div className="w-full py-8 mt-4 text-center">
+        <Container>
+          <h1 className="text-2xl font-bold hover:text-gray-500">Login to read posts</h1>
+        </Container>
+      </div>
+    )
+  }
+
+  return (
+    <div className="w-full py-8">
+      <Container>
+        <div className="flex flex-wrap">
+          {posts.map((post) => (
+            <div key={post.$id} className="p-2 w-1/4">
+              <PostCard {...post} />
+            </div>
+          ))}
+        </div>
+      </Container>
+    </div>
+  )
 }
 
 export default Home
